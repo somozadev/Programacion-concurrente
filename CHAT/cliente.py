@@ -7,16 +7,19 @@ import os
 class Cliente():
 
 	# def __init__(self, host = '10.34.84.147', port=61000):
-	def __init__(self, host=socket.gethostname(), port=59989):
+	def __init__(self, host= input("Escriba la IP: "), port= input("Escriba el puerto: ")):
 		self.sock = socket.socket()
 		username = input('Username: ')
 		self.sock.connect((str(host), int(port)))
 		hilo_recv_mensaje = threading.Thread(target=self.recibir)
 		hilo_recv_mensaje.daemon = True
 		hilo_recv_mensaje.start()
-		print('Hilo con PID',os.getpid())
-		print('Hilos activos', threading.active_count())
-		self.enviar(username + " se ha conectado")
+		
+		for thread in threading.enumerate():
+			print("Hilo: " + thread.name + "\n" + "Proceso PID: "+ str(os.getpid()) + "\n" + "Daemon: " + str(thread.daemon) +  "\n")
+		print("Hilos totales: " + str(threading.activeCount()-1))
+
+		self.enviar("<" + username + "> se ha conectado")
 		while True:
 			# msg = input('\nEscriba texto ? ** Enviar = ENTER ** Abandonar Chat = Q \n')
 			msg = input("\n>>\n")
