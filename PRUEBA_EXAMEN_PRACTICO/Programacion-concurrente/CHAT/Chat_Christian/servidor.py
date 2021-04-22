@@ -54,7 +54,7 @@ class Servidor():
 			if len(self.clientes) > 0:
 				for c in self.clientes:
 					try:
-						data = c.recv(32)
+						data = c.recv(1024)
 						if data:
 							self.broadcast(data,c)
 					except:

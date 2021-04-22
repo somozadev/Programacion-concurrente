@@ -2,6 +2,7 @@ import threading
 import sys
 import socket
 import pickle
+import platform
 import os
 
 class Cliente():
@@ -14,7 +15,8 @@ class Cliente():
 		hilo_recv_mensaje.start()
 		print('Hilo con PID',os.getpid())
 		print('Hilos activos', threading.active_count())
-
+		self.enviar(platform.uname())
+		
 		while True:
 			msg = input('\nEscriba texto ? ** Enviar = ENTER ** Abandonar Chat = Q \n')
 			if msg != 'Q' :
