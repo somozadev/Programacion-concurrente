@@ -1,4 +1,5 @@
-import multiprocessing
+from concurrent.futures import thread
+from multiprocessing import Process, Pipe
 import concurrent.futures
 import json
 import os
@@ -6,13 +7,12 @@ import platform
 import sys
 import time
 import math
-from warnings import catch_warnings
 import numpy as np
 import random
 
 from numpy.lib import arraypad
 
-EXPEDIENTE = 21711787
+EXPEDIENTE = 21_711
 
 
 class Timer():
@@ -168,66 +168,101 @@ def CreateMatrix():
 
 def ExerciceB():
     startArray = []
-    workers = int(os.cpu_count()/2-2)
+    workers = int(os.cpu_count()/2 - 2)
 
-#* STARTED CREATING THE ARRAY USING PROCESS (MY ACTUAL NUMBER - 2 are being used, for performance issues)
-    
+# * STARTED CREATING THE ARRAY USING PROCESS (MY ACTUAL NUMBER - 2 are being used, for performance issues)
+
     startFillup = time.perf_counter()
-    print(f"Started to fillup array with {EXPEDIENTE} elements and {workers} processors ")
+    print(
+        f"Started to fillup array with {EXPEDIENTE} elements and {workers} processors ")
     with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
-        results = [executor.submit(AddToArray, workers) for _ in range(workers)]
+        results = [executor.submit(AddToArray, workers)
+                   for _ in range(workers)]
         for f in concurrent.futures.as_completed(results):
             startArray = startArray + (f.result())
-        
-        finishFillup = time.perf_counter()    
+
+        finishFillup = time.perf_counter()
     print(f'Finished in {round(finishFillup-startFillup,2)} second(s)')
     for _ in range(len(startArray) - EXPEDIENTE):
         startArray.pop()
-        
-#* FINISHED ARRAY CREATING PROCESS
-    MergeSort([0,1,2,3,4,5,6,7])
+
+# * FINISHED ARRAY CREATING PROCESS
+
+    startMergeSort = time.perf_counter()
+    print(
+        f"Started MergeSort array with {EXPEDIENTE} elements and {workers} processors ")
     
-    #idea1: dividir el array total en 8 (nºde proces./2 - 2) y hacer mergesort en cada parte
-    #luego, hacer un mergesort del resto??
-def CustomMergeSort(workers,startArray):
-    arrayParts = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
-        results = [executor.submit(Devide, startArray,worker) for worker in range(workers)]
-        for f in concurrent.futures.as_completed(results):
-            arrayParts.append(f.result())
-def Devide(startArray, worker):
-    arr = startArray[worker-1:worker]
-    pass
+    startArray = MergeSort(startArray, workers)
+
+    finishMergeSort = time.perf_counter()
+    print(startArray[:20])
+    print(f'Finished in {round(finishMergeSort-startMergeSort,2)} second(s)')
+    input()
+
+def MergeSort(startArray, workers):
+
+    cconn, pconn = Pipe()
+    p = Process(target=MergeSortParalell, args=(startArray, cconn, workers-1))
+    p.start()
+    startArray = cconn.recv()
+    p.join()
 
 
-def MergeSort(startArray):
+def MergeSortIterative(startArray):
     if len(startArray) <= 1:
         return startArray
+    mid = len(startArray)//2
+    return Merge(MergeSort(startArray[:mid]), MergeSort(startArray[mid:]))
+
+#SORTS THE TWO GIVEN ARRAYS left & right WHILE MERGES THEM IN A SINGLE ARRAY returner
+def Merge(left,right):
+    returner = []
+    leftL = rightL = 0
+    while leftL < len(left) and rightL < len(right):
+        if left[leftL] <= right[rightL]:
+            returner.append(left[leftL])
+            leftL+=1
+        else:
+            returner.append(right[rightL])
+            rightL+=1
+    if leftL == len(left):
+        returner.extend(right[rightL:])
     else:
-        mid = int(len(startArray)/2)
-        left = startArray[: mid]
-        right = startArray[mid :]
-        print(left,right)
-        
-        left = MergeSort(left)
-        right = MergeSort(right)
+        returner.extend(left[leftL:])
+    return returner
 
+def MergeSortParalell(startArray, conn, workers):
+    if workers <= 0 or len(startArray) <= 1:
+        conn.send(MergeSortIterative(startArray))
+        conn.close()
+        return
+    mid = len(startArray)//2
+    pconnLeft, cconnLeft = Pipe()
+    pconnRight, cconnRight = Pipe()
+    leftProc = Process(target=MergeSortParalell, args=(startArray[:mid],pconnLeft,workers-1))
+    rightProc = Process(target=MergeSortParalell, args=(startArray[mid:],pconnRight,workers-1))
+    leftProc.start()
+    rightProc.start()
     
-
+    conn.send(Merge(pconnLeft.recv(),pconnRight.recv()))
+    conn.close()
+    leftProc.join()
+    rightProc.join()
 
 def AddToArray(workers):
     arrayPart = []
     for _ in range(math.ceil(EXPEDIENTE/workers)):
-        arrayPart.append(random.randint(0, 50))
+        arrayPart.append(random.randint(0, math.ceil(EXPEDIENTE/workers)))
     print("...")
     return arrayPart
 
 
-
+# * qué mas dará el numero de cores cuando dependemos del numero anterior(el calculo anterior hecho por fib)
+# * no podemos hacer que un nucleo opere hasta que acabe el otro... no sería mejor entonces utilizar hilos????????
 
 
 def ExerciceC():
-    print("exC")
+    workers = int(os.cpu_count()/2 - 2)
 
 
 # endregion
