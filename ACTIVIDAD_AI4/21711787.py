@@ -1,23 +1,20 @@
 from concurrent.futures import thread
-from multiprocessing import Process, Pipe
+from multiprocessing import Process
+import multiprocessing as mp
 import concurrent.futures
 import json
+import multiprocessing
 import os
 import platform
 import sys
 import time
 import math
-import numpy as np
 import random
 
 from numpy.lib import arraypad
 
-EXPEDIENTE = 21_711
-
-
-class Timer():
-    def __init__(self):
-        pass
+EXPEDIENTE = 217117#20000  # 21711787
+workers = int(os.cpu_count()/2 - 2)
 
 
 class ConsoleClear():
@@ -28,6 +25,7 @@ class ConsoleClear():
         elif platform.system() == 'Linux' or 'Darwin':
             def clear(): return os.system('clear')
             clear()
+            
 # region LOGIN
 
 
@@ -39,7 +37,6 @@ class User():
 
     def toDict(self):
         return {'user': self.user, 'password': self.password}
-
 
 class DataController():
     def __init__(self):
@@ -112,6 +109,8 @@ def ExercicesMenu():
           " - A: Ejercicio A ", "\n",
           " - B: Ejercicio B ", "\n",
           " - C: Ejercicio C ", "\n",
+          " - L: Login menu ", "\n",
+          " - X: Exit ", "\n",
           )
     response = input()
     if response == 'A':
@@ -120,52 +119,87 @@ def ExercicesMenu():
         ExerciceB()
     elif response == 'C':
         ExerciceC()
+    elif response == 'L':
+        data = DataController()
+        data.ManageUsersPanel()
+    elif response == 'X':
+        sys.exit()
     else:
         ExercicesMenu()
 
 
-# *
-# * como os.cpu_count() = 20 ; tenemos 20 cores virtuales y 20/2 = 10 cores físicos
-# *
-
+#region ej_A
 def ExerciceA():
 
-    # * ANTIGUAMENTE SE HACÍA A MANO
-    # *processes = []
-    # *start = time.perf_counter()
-    # *for _ in range(10):
-    # *    p = multiprocessing.Process(target = ExerciceB)
-    # *    p.start()
-    # *    processes.append(p)
-    # *for process in processes:
-    # *    process.join()
-    # *
-    # *finish = time.perf_counter()
-    # *print(f'Finished in {round(finish-start,2)} second(s)')
+    # cuando pasamos al expediente de n7 (2171178) es necesario externalizar los calculos a la nube.
+    # el error es el siguiente: OSError: [WinError 1455] El archivo de paginación es demasiado pequeño para completar la operación
+    
+    # Genero A[21535220][6]con num. aleatorios del 0 al 215
+    m1 = [[random.randint(0, 215) for i in range(6)] for j in range(217117)] #21711787
+    
+    # Genero B[6][21535220]con num. aleatorios del 0 al 215
+    m2 = [[random.randint(0, 215) for i in range(200)] for j in range(6)]
+    m1f = len(m1)  # Obtengo num de filas de A
+    m1c = len(m1[0])  # Obtengo num de colunmas de A
+    m2f = len(m2)  # Obtengo num de filas de B
+    m2c = len(m2[0])  # Obtengo num de filas de B
+    if m1c != m2f:
+        # Compruebo que se puedan multiplicar A y B
+        raise Exception('Dimensiones no validas')
 
-    m1 = CreateMatrix()
-    m2 = CreateMatrix()
+    startMultiply = time.time()
+    MultiplyMat(m1, m2, m2c, m1f) 
+    endMultiply = time.time()
+    input(f'Finished multiply matrix in {round(endMultiply-startMultiply,2)} second(s)...')
+    ExercicesMenu()
+    
+# f() que prepara el reparto de trabajo para la mult. en paralelo
+def MultiplyMat(m1, m2, m2c, m1f):
+    
+    n_cores = int(os.cpu_count()/2)  # Obtengo los cores de mi pc
+    # Columnas  a procesar x c/cpre
+    size_col = math.ceil(m2c/n_cores)
+    # Filas a procesar x c/cpre
+    size_fil = math.ceil(m1f/n_cores)
+    # Array de memoria compartida donde se almacenaran los resultados
+    sharedArr = mp.RawArray('i', m1f * m2c)
+    cores = []  
+    # Asigno a cada core el trabajo que le toca
+    for core in range(n_cores):
+        # Calculo i para marcar inicio del trabajo del core en relacion a las filas
+        i_sharedArr = min(core * size_fil, m1f)
+        # Calculo f para marcar fin del trabajo del core
+        f_sharedArr = min((core + 1) * size_fil, m1f)
+        # Añado al Array los cores y su trabajo
+        cores.append(mp.Process(target=par_core, args=(m1, m2, sharedArr, i_sharedArr, f_sharedArr)))
+    for core in cores:
+        print(f"{core.name} started...")
+        core.start()  # Arranco y ejecuto el trabajo para c/ uno de los cores que tenga mi equipo
+    for core in cores:
+        print(f"{core.name} ended...")
+        core.join()  # Bloqueo cualquier llamada hasta que terminen su trabajo todos los cores
+    # Convierto el array unidimensional compartido en una matrix 2D 
+    finalMatrix = [[0] * m2c for i in range(m1f)]
+    for i in range(m1f):  # i para iterar sobre las filas de m1
+        for j in range(m2c):  # j para iterar sobre las columnas de m2
+            # Guardo en finalMatrix los datos del array compartido
+            finalMatrix[i][j] = sharedArr[i*m2c + j]
+    return finalMatrix
 
-    # with concurrent.futures.ProcessPoolExecutor() as executor:
-    #     results = [executor.submit(ExerciceB) for _ in range(10)]
-    #     for f in concurrent.futures.as_completed(results):
-    #         print(f.result())
-
-    print("exA")
-
-
-def CreateMatrix():
-    n = (math.ceil(math.sqrt(pow(EXPEDIENTE, 3))))  # matriz de orden N
-    print("exp", EXPEDIENTE)
-    print("pow", pow(EXPEDIENTE, 3))
-    print("sqrt", math.sqrt(pow(EXPEDIENTE, 3)))
-    print("final", n)
-    m = [0] * n
-    print(m)
-    np.array[None, EXPEDIENTE]
-    return np.array([[1, 2, 3], [1, 2, 3], [1, 2, 3]])
-
-
+def par_core(m1, m2, sharedArr, i_sharedArr, f_sharedArr):  # La tarea que hacen todos los cores
+    # Size representado en colores en el excel que itera sobre las filas en m1
+    startCore = time.time()
+    for i in range(i_sharedArr, f_sharedArr):
+        # Size representado en colores en el excel que itera sobre las columnas en m2
+        for j in range(len(m2[0])):
+            for k in range(len(m1[0])):  # m2f o lo que es l0 mismo el m1c
+                # Guarda resultado  de cada core
+                sharedArr[i*len(m2[0]) + j] += m1[i][k] * m2[k][j]
+    endCore = time.time()
+    print(f"{os.getpid()} finished in {round(endCore-startCore,2)} second(s)")
+    
+#endregion
+#region ej_B
 def ExerciceB():
     startArray = []
     workers = int(os.cpu_count()/2 - 2)
@@ -182,72 +216,66 @@ def ExerciceB():
             startArray = startArray + (f.result())
 
         finishFillup = time.perf_counter()
-    print(f'Finished in {round(finishFillup-startFillup,2)} second(s)')
+    print(f'Finished fillup in {round(finishFillup-startFillup,2)} second(s)')
     for _ in range(len(startArray) - EXPEDIENTE):
         startArray.pop()
 
 # * FINISHED ARRAY CREATING PROCESS
 
     startMergeSort = time.perf_counter()
-    print(
-        f"Started MergeSort array with {EXPEDIENTE} elements and {workers} processors ")
+    print(f"Started MergeSort array with {EXPEDIENTE} elements and {workers} processors ")
+    MergeSort(startArray, 0, workers)
+    endMergeSort = time.perf_counter()
+    print(f'Finished MergeSort in {round(endMergeSort-startMergeSort,2)} second(s)')
     
-    startArray = MergeSort(startArray, workers)
-
-    finishMergeSort = time.perf_counter()
-    print(startArray[:20])
-    print(f'Finished in {round(finishMergeSort-startMergeSort,2)} second(s)')
-    input()
-
-def MergeSort(startArray, workers):
-
-    cconn, pconn = Pipe()
-    p = Process(target=MergeSortParalell, args=(startArray, cconn, workers-1))
-    p.start()
-    startArray = cconn.recv()
-    p.join()
+    
 
 
-def MergeSortIterative(startArray):
-    if len(startArray) <= 1:
+def MergeSort(startArray, i , workers):
+    if len(startArray) == 1:
         return startArray
-    mid = len(startArray)//2
-    return Merge(MergeSort(startArray[:mid]), MergeSort(startArray[mid:]))
-
-#SORTS THE TWO GIVEN ARRAYS left & right WHILE MERGES THEM IN A SINGLE ARRAY returner
-def Merge(left,right):
-    returner = []
-    leftL = rightL = 0
-    while leftL < len(left) and rightL < len(right):
-        if left[leftL] <= right[rightL]:
-            returner.append(left[leftL])
-            leftL+=1
-        else:
-            returner.append(right[rightL])
-            rightL+=1
-    if leftL == len(left):
-        returner.extend(right[rightL:])
-    else:
-        returner.extend(left[leftL:])
-    return returner
-
-def MergeSortParalell(startArray, conn, workers):
-    if workers <= 0 or len(startArray) <= 1:
-        conn.send(MergeSortIterative(startArray))
-        conn.close()
-        return
-    mid = len(startArray)//2
-    pconnLeft, cconnLeft = Pipe()
-    pconnRight, cconnRight = Pipe()
-    leftProc = Process(target=MergeSortParalell, args=(startArray[:mid],pconnLeft,workers-1))
-    rightProc = Process(target=MergeSortParalell, args=(startArray[mid:],pconnRight,workers-1))
-    leftProc.start()
-    rightProc.start()
     
-    conn.send(Merge(pconnLeft.recv(),pconnRight.recv()))
-    conn.close()
-    leftProc.join()
-    rightProc.join()
+    if pow(2,i) < workers: 
+        i += 1
+    mid = len(startArray) // 2
+    left = startArray[:mid]
+    right = startArray[mid:]
+    if pow(2,i) == workers:
+        workers-= 2
+        with concurrent.futures.ProcessPoolExecutor(max_workers= 2) as executor:
+            result1 = executor.submit(MergeSort,left, i , workers)
+            result2 = executor.submit(MergeSort,right, i , workers)
+            print(result1, "has started with left side")
+            print(result2, "has started with right side")
+            
+            arrOne = result1.result()
+            arrTwo = result2.result()
+    
+    else:
+        arrOne = MergeSort(left, i , workers)
+        arrTwo = MergeSort(right, i , workers)
+    
+    return Merge(arrOne,arrTwo)
+
+def Merge(arrA, arrB):
+    arrC = []
+    
+    while len(arrA) > 0 and len(arrB) > 0 : 
+        if arrA[0] > arrB[0]: 
+            arrC.append(arrB[0]) 
+            arrB.remove(arrB[0])
+        else: 
+            arrC.append(arrA[0])
+            arrA.remove(arrA[0])
+    while len(arrA) > 0: 
+        arrC.append(arrA[0])
+        arrA.remove(arrA[0])    
+    
+    while len(arrB) > 0: 
+        arrC.append(arrB[0])
+        arrB.remove(arrB[0])
+        
+    return arrC
 
 def AddToArray(workers):
     arrayPart = []
@@ -256,13 +284,14 @@ def AddToArray(workers):
     print("...")
     return arrayPart
 
+#endregion
 
 # * qué mas dará el numero de cores cuando dependemos del numero anterior(el calculo anterior hecho por fib)
 # * no podemos hacer que un nucleo opere hasta que acabe el otro... no sería mejor entonces utilizar hilos????????
 
 
 def ExerciceC():
-    workers = int(os.cpu_count()/2 - 2)
+    pass
 
 
 # endregion
