@@ -13,7 +13,7 @@ import random
 
 from numpy.lib import arraypad
 
-EXPEDIENTE = 217117#20000  # 21711787
+EXPEDIENTE = 2171178#20000  # 21711787
 workers = int(os.cpu_count()/2 - 2)
 
 
@@ -45,7 +45,7 @@ class DataController():
         self.ManageUsersPanel()
 
     def GetUsers(self):
-        with open('E:/CARRERA/4ºCARRERA/2º CUATRI/Programacion concurrente/ACTIVIDAD_AI4/users.json', 'r') as r:
+        with open('users.json', 'r') as r: #E:/CARRERA/4ºCARRERA/2º CUATRI/Programacion concurrente/ACTIVIDAD_AI4/
             self.usersList = (json.loads(r.read()))
 
     def AddUser(self, userObject):
@@ -53,10 +53,9 @@ class DataController():
         self.SaveUsers()
 
     def SaveUsers(self):
-        # userListDict = [user.toDict() for user in self.usersList]
         print(self.usersList)
         print(type(self.usersList))
-        with open('E:/CARRERA/4ºCARRERA/2º CUATRI/Programacion concurrente/ACTIVIDAD_AI4/users.json', 'w') as f:
+        with open('users.json', 'w') as f: #E:/CARRERA/4ºCARRERA/2º CUATRI/Programacion concurrente/ACTIVIDAD_AI4/
             json.dump(self.usersList, f)
 
     def Register(self):
@@ -69,7 +68,8 @@ class DataController():
 
         for dbUser in self.usersList:
             if dbUser['user'] == user and dbUser['password'] == password:
-                print("welcome back, ", user)
+                print("Welcome back,", user)
+                time.sleep(.75)
                 ExercicesMenu()
                 return
 
@@ -102,6 +102,7 @@ class DataController():
 
 
 def ExercicesMenu():
+    
     ConsoleClear()
     print(" **************************", "\n",
           "* SELECCIONE LA ACTIVIDAD *", "\n"
@@ -151,6 +152,7 @@ def ExerciceA():
     MultiplyMat(m1, m2, m2c, m1f) 
     endMultiply = time.time()
     input(f'Finished multiply matrix in {round(endMultiply-startMultiply,2)} second(s)...')
+    input(". . .")
     ExercicesMenu()
     
 # f() que prepara el reparto de trabajo para la mult. en paralelo
@@ -202,9 +204,8 @@ def par_core(m1, m2, sharedArr, i_sharedArr, f_sharedArr):  # La tarea que hacen
 #region ej_B
 def ExerciceB():
     startArray = []
-    workers = int(os.cpu_count()/2 - 2)
 
-# * STARTED CREATING THE ARRAY USING PROCESS (MY ACTUAL NUMBER - 2 are being used, for performance issues)
+# STARTED CREATING THE ARRAY USING PROCESS (MY ACTUAL NUMBER - 2 are being used, for performance issues)
 
     startFillup = time.perf_counter()
     print(
@@ -220,14 +221,15 @@ def ExerciceB():
     for _ in range(len(startArray) - EXPEDIENTE):
         startArray.pop()
 
-# * FINISHED ARRAY CREATING PROCESS
+#  FINISHED ARRAY CREATING PROCESS
 
     startMergeSort = time.perf_counter()
     print(f"Started MergeSort array with {EXPEDIENTE} elements and {workers} processors ")
     MergeSort(startArray, 0, workers)
     endMergeSort = time.perf_counter()
     print(f'Finished MergeSort in {round(endMergeSort-startMergeSort,2)} second(s)')
-    
+    input(". . .")
+    ExercicesMenu()
     
 
 
@@ -280,21 +282,45 @@ def Merge(arrA, arrB):
 def AddToArray(workers):
     arrayPart = []
     for _ in range(math.ceil(EXPEDIENTE/workers)):
-        arrayPart.append(random.randint(0, math.ceil(EXPEDIENTE/workers)))
+        arrayPart.append(random.randint(0, EXPEDIENTE))
     print("...")
     return arrayPart
 
 #endregion
+#region ej_C
 
-# * qué mas dará el numero de cores cuando dependemos del numero anterior(el calculo anterior hecho por fib)
-# * no podemos hacer que un nucleo opere hasta que acabe el otro... no sería mejor entonces utilizar hilos????????
-
+# qué mas dará el numero de cores cuando dependemos del numero anterior(el calculo anterior hecho por fib)
+#  no podemos hacer que un nucleo opere hasta que acabe el otro... 
 
 def ExerciceC():
-    pass
+    startFib = time.perf_counter()
+    print(f"Started fibonacci sequence with number {EXPEDIENTE} and {workers} processors ")
+    fibP(EXPEDIENTE)
+    endFib = time.perf_counter()
+    print(f'Finished fibonacci in {round(endFib-startFib,2)} second(s)')
+    input(". . .")
+    ExercicesMenu()
 
+def fibP(nums):
+    with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor: 
+        fibRet = {executor.submit(fib,nums,)}
+    
+    for returner in concurrent.futures.as_completed(fibRet):
+        n,f = returner.result()
+        # print("{0}: {1}".format(n,f))
+    
 
+def fib(n):
+    a,b = 0,1
+    for _ in range(0,n):
+        a,b = b, a + b 
+    return((n,a))
+
+        
 # endregion
+# endregion
+
+
 if __name__ == "__main__":
 
     data = DataController()
