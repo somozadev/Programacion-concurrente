@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "practica-pdc-somoza",
+  "private_key_id": "2245e024fd930ae7791e221b80c0c8297cf23f20",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDmSudVW2MNtlHu\noN31f6uPd/qjxvdrj3fN7Zk5JfjFPhVLwkHaAvWrxEf6bBSxM69rKBhunslPShRa\nEa0oKhktUZKSa1bGOmVKW6RSbxaHBhZ2VoZNW7OOxOAJeSus3XsmWdLed6RfxGo5\nkKVNNPR240DGHuWWHIQtfzM5ee1R6KeWmUGCrIj15v31tPf5u5b+XJh9kgLmGEiT\nPpZ0WaSRxZwF8oCLNY0axIaDJIR+FBKvlu9Pk3TMZ9j8wQJ1HGu6oYri7HhfyuKx\nexR95E9d/qTrH3bl2AR2pF3RPJSaKLuskHOwXG46of6+FicTA1aaKKKYdokPZ0wC\ncJJMCOKHAgMBAAECggEABYU4JGiraDG9pw2+JFtqHmdO38wuNCrdQVd3u9H4M6o4\nUneWooY9o19yJkOe/1xw0Q3GACjYRIlPEZWo4/SWY+q3q8Dc9KWDthOaTcuR66yu\nrymF0KbpF/wKLs/zxxIMGLBAiMqvawhHT5fzDnW9gngSHm2xLTcDyB9rd+4/TR5N\n99BeGMS4hqC/7Emnu14B18IOGmu77dd83GHbTvxF0nbtiK1RdPZc5mbk1ZioHfzk\npRtqpHB9wGBOdTSBu1mVyovt/5Jha93552lNRH9uFMvU1IZAzruqOBhhJZzS8GPl\nPxmXzSjP8jubZ1nc5zDHsocy07AhPgiQAZN1WRAI0QKBgQD8cFMIdMjA5uaV4ONP\nErqj2/O6/KllOFmvXk8QVkGt5lMzR6QW/Ig8LuaJGk6GGkXvIvXI4Du+mUnZMboi\nC0Xymw04mY7mlin+N7Lq7deXaIZbMMdRk5gkwUZ587+yoxhuv7yNIybkVFMCkq5H\ndPXqceTY1qkwR6b6yBFlDqc0yQKBgQDpiplX/kaldKPCWfriQiMiwU5TkTsDbkml\ncxEkiLvDYdUoxFwUH7wq1BwJY2Dgdt5+ejSp9j8TGtPh46N8OGlFchRQaZGNgq3N\nmVyAnM8w1WHcfbZHYX16Y/SVKPCnGp1QgsVp7rfiYEVEXWOYZeKVf0yHncvkPeyi\nWzZzY0mUzwKBgA5cFV0Vx5WxjMxZzpRg7F0F1gd89+XaHr/rDXRQc8wAnhr8qEjm\ndJl30YVbCbx3IiNISdLzbnKZJapFOeFV4tS6HTZrBcX4JMthP7w9a1YhjAMD81Kg\norb0h53IT89Jl8o0/fTJWx0B7vbmgSNvc82yTOJI07b7XHRHjTXCb6CBAoGBANKs\npQgr6a74OYHpidjxsKB5oR7htEq0AtutoZlDf54RcykDecztk+FO1rvhWlMi6DNQ\nKpHoAZ5KZTkxERnOCakL8CdaFGODryX5YujijEWROGafQP/Dgl4WLV0hQXZ9G8y1\nK0EUh+0+yz2QwXeI8Y3K+E6emn+bHQyZG9Wbi5UhAoGBAInwzrSXqQmICJwHgFiC\nC3gp/sF7zfyXaccF2SZF7CiMQ9oLxy751ohAZ4ZOLrJMvxoorwOyXOeRhsr1aloZ\nnAYD3TNp5ZLfaI/HuNVjDPVLqDMy5YbH7XdrBi7MBQu1hDAO3YgZ+xhlO1hv7YM+\n0RK8DN00v4PHiQkLPacGceJ6\n-----END PRIVATE KEY-----\n",
+  "client_email": "somozadev-py@practica-pdc-somoza.iam.gserviceaccount.com",
+  "client_id": "102049675476834092855",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/somozadev-py%40practica-pdc-somoza.iam.gserviceaccount.com"
+}
